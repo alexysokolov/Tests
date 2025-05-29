@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Reflection.Metadata.Ecma335;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TransactionService.Models;
 
@@ -22,8 +23,8 @@ namespace TransactionService.Services
         }
         public async Task<DateTime> SaveAsync(Transaction trans)
         {
-            var existedTransaction = (await _databaseContext.Transactions.AsNoTracking().Select(t => t).Where(tr => tr.Id == trans.Id).ToListAsync()).First();
-            if (existedTransaction != null) return existedTransaction.InsertDateTime;
+            var existedTransaction = await _databaseContext.Transactions.AsNoTracking().Select(t => t).Where(tr => tr.Id == trans.Id).ToListAsync();
+            if (existedTransaction.Count() > 0) return existedTransaction[0].InsertDateTime;
 
             var maxCountRecordsinDatabase = _configuration["MaxTransactionRecords"];
 
@@ -46,7 +47,11 @@ namespace TransactionService.Services
         }
         public async Task<Transaction> GetAsync(Guid id)
         {
-            return (await _databaseContext.Transactions.AsNoTracking().Select(t => t).Where(tr=>tr.Id==id).ToListAsync()).First();
+            var res = await _databaseContext.Transactions.AsNoTracking().Select(t => t).Where(tr=>tr.Id==id).ToListAsync();
+            if (res.Count() > 0) 
+                return res[0];
+
+            throw new CustomException("Not found");
         }
     }
 }
