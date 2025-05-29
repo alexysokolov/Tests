@@ -1,12 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using TransactionService.Models;
 
 namespace TransactionService.Services
 {
     public interface ITransactionService
     {
-        public DateTime Save(Transaction transaction);
-        public Transaction? Get(Guid id);
+        public Task<DateTime> SaveAsync(Transaction transaction);
+        public Task<Transaction> GetAsync(Guid id);
     }
     public class TransactionService : ITransactionService
     {
@@ -19,12 +20,10 @@ namespace TransactionService.Services
             _configuration = configuration;
             _logger = logger;
         }
-        public DateTime Save(Transaction trans)
+        public async Task<DateTime> SaveAsync(Transaction trans)
         {
             var existedTransaction = _databaseContext.Transactions.FirstOrDefault(x => x.Id == trans.Id);
             if (existedTransaction != null) return existedTransaction.InsertDateTime;
-
-            
 
             var maxCountRecordsinDatabase = _configuration["MaxTransactionRecords"];
 
@@ -37,17 +36,17 @@ namespace TransactionService.Services
 
             var transaction = trans with { InsertDateTime = DateTime.UtcNow };
 
-            _databaseContext.Transactions.Add(transaction);
+            await _databaseContext.Transactions.AddAsync(transaction);
 
             _logger.Log("Transaction {0} has saved!", transaction.Id.ToString());
 
-            _databaseContext.SaveChanges();
+            await _databaseContext.SaveChangesAsync();
 
             return transaction.InsertDateTime;
         }
-        public Transaction? Get(Guid id)
+        public async Task<Transaction> GetAsync(Guid id)
         {
-            return _databaseContext.Transactions.FirstOrDefault(x => x.Id == id);
+            return (await _databaseContext.Transactions.AsNoTracking().Select(t => t).Where(tr=>tr.Id==id).ToListAsync()).First();
         }
     }
 }

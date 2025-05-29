@@ -21,7 +21,7 @@ namespace TransactionService.Controllers
         }
         [HttpPost]
         [Route("/api/v1/transaction")]
-        public JsonResult Transaction([FromBody] TransactionRequest request)
+        public async Task<JsonResult> Transaction([FromBody] TransactionRequest request)
         {
             try
             {
@@ -35,8 +35,7 @@ namespace TransactionService.Controllers
                 }
                 else
                 {
-                    
-                    return Json(new { insertDateTime = _transactionService.Save(request.ToTransaction()) });
+                    return Json(new { insertDateTime = await _transactionService.SaveAsync(request.ToTransaction()) });
                 }
                 
             }
@@ -55,7 +54,7 @@ namespace TransactionService.Controllers
         }
         [HttpGet]
         [Route("/api/v1/transaction")]
-        public JsonResult Transaction([Required(ErrorMessage = "id is required to get transaction")] Guid id)
+        public async Task<JsonResult> Transaction([Required(ErrorMessage = "id is required to get transaction")] Guid id)
         {
             try
             {
@@ -70,8 +69,10 @@ namespace TransactionService.Controllers
                 }
                 else
                 {
-                    var transaction = _transactionService.Get(id);
+                    var transaction = await _transactionService.GetAsync(id);
+                    _logger.Log("Trans id {0}", transaction.Id.ToString());
                     return Json(transaction);
+                    
                 }
             }
             catch (CustomException ex)
