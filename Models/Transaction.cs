@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using TransactionService.CustomValidators;
 
 namespace TransactionService.Models
 {
@@ -15,6 +16,7 @@ namespace TransactionService.Models
         public Guid Id { get; set; }
 
         [Required(ErrorMessage = "TransactionDate is required.")]
+        [NotFutureDateAttribute(ErrorMessage = "TransactionDate can't be in future")]
         public DateTime TransactionDate { get; set; }
 
         [Range(typeof(decimal), "0", "79228162514264337593543950335", ErrorMessage ="Amount has to be more than 0")]
