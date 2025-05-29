@@ -19,12 +19,12 @@ namespace TransactionService.Services
             _configuration = configuration;
             _logger = logger;
         }
-        public DateTime Save(Transaction transaction)
+        public DateTime Save(Transaction trans)
         {
-            var existedTransaction = _databaseContext.Transactions.FirstOrDefault(x => x.Id == transaction.Id);
+            var existedTransaction = _databaseContext.Transactions.FirstOrDefault(x => x.Id == trans.Id);
             if (existedTransaction != null) return existedTransaction.InsertDateTime;
 
-            var Transaction = transaction with { InsertDateTime = DateTime.UtcNow};
+            
 
             var maxCountRecordsinDatabase = _configuration["MaxTransactionRecords"];
 
@@ -35,7 +35,9 @@ namespace TransactionService.Services
                 throw new CustomException("Max count records has reached. MaxCount is " + maxCount);
             }
 
-            _databaseContext.Transactions.Add(Transaction);
+            var transaction = trans with { InsertDateTime = DateTime.UtcNow };
+
+            _databaseContext.Transactions.Add(transaction);
 
             _logger.Log("Transaction {0} has saved!", transaction.Id.ToString());
 
