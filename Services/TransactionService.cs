@@ -22,7 +22,7 @@ namespace TransactionService.Services
         }
         public async Task<DateTime> SaveAsync(Transaction trans)
         {
-            var existedTransaction = _databaseContext.Transactions.FirstOrDefault(x => x.Id == trans.Id);
+            var existedTransaction = (await _databaseContext.Transactions.AsNoTracking().Select(t => t).Where(tr => tr.Id == trans.Id).ToListAsync()).First();
             if (existedTransaction != null) return existedTransaction.InsertDateTime;
 
             var maxCountRecordsinDatabase = _configuration["MaxTransactionRecords"];
