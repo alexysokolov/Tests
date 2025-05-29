@@ -1,0 +1,29 @@
+version: '4.0'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: bank_postgres
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: bank
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+
+  web:
+    build: .
+    container_name: bank_app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+    restart: always
+
+volumes:
+  pgdata:
